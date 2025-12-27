@@ -1,6 +1,8 @@
 import streamlit as st
+import pandas as pd
 from data import get_financials
 from metrics import calculate_key_metrics
+from dcf import run_dcf_model
 
 # Page setup
 st.set_page_config(
@@ -87,7 +89,78 @@ else:
 
 # Valuation (DCF)
 st.header("Valuation (DCF)")
-st.info("Intrinsic value and assumptions will appear here.")
+
+if ticker:
+    # DCF Assumptions
+    st.subheader("DCF Assumptions")
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        discount_rate = st.slider("Discount Rate (WACC)", 0.05, 0.20, 0.10, 0.01, help="Required rate of return")
+        terminal_growth = st.slider("Terminal Growth Rate", 0.00, 0.05, 0.025, 0.005, help="Long-term growth rate")
+    
+    with col2:
+        revenue_growth = st.slider("Revenue Growth Rate", -0.10, 0.20, 0.05, 0.01, help="Annual revenue growth")
+        margin_improvement = st.slider("Margin Improvement", -0.02, 0.02, 0.005, 0.001, help="Annual operating margin improvement")
+    
+    with col3:
+        projection_years = st.slider("Projection Years", 3, 10, 5, 1, help="Number of years to project cash flows")
+    
+    assumptions = {
+        'discount_rate': discount_rate,
+        'terminal_growth': terminal_growth,
+        'projection_years': projection_years,
+        'revenue_growth': revenue_growth,
+        'margin_improvement': margin_improvement
+    }
+    
+    # Run DCF
+    dcf_result = run_dcf_model(financials, assumptions)
+    
+    if "Error" not in dcf_result:
+        st.subheader("DCF Valuation Results")
+        
+        # Key metrics
+        col1, col2, col3, col4 = st.columns(4)
+        with col1:
+            st.metric("Intrinsic Value per Share", f"${dcf_result['Value per Share']:.2f}")
+        with col2:
+            st.metric("Current Price", f"${dcf_result['Current Price']:.2f}")
+        with col3:
+            upside = dcf_result['Upside/Downside']
+            st.metric("Upside/Downside", f"{upside:.1%}", 
+                     delta=f"{upside:.1%}" if upside > 0 else f"{upside:.1%}",
+                     delta_color="normal" if upside > 0 else "inverse")
+        with col4:
+            st.metric("Enterprise Value", f"${dcf_result['Enterprise Value']/1e9:.1f}B")
+        
+        # Assumptions summary
+        st.subheader("Assumptions Used")
+        assumptions = dcf_result['Assumptions']
+        col1, col2, col3 = st.columns(3)
+        for i, (key, value) in enumerate(assumptions.items()):
+            if i % 3 == 0:
+                col1.metric(key, value)
+            elif i % 3 == 1:
+                col2.metric(key, value)
+            else:
+                col3.metric(key, value)
+        
+        # Projected Cash Flows
+        st.subheader("Projected Free Cash Flows")
+        years = [f"Year {i+1}" for i in range(projection_years)]
+        projected_df = pd.DataFrame({
+            'Year': years,
+            'Projected FCF': dcf_result['Projected FCF']
+        })
+        projected_df['Projected FCF'] = projected_df['Projected FCF'].apply(lambda x: f"${x/1e6:.0f}M")
+        st.dataframe(projected_df)
+        
+        st.caption(f"Terminal Value: ${dcf_result['Terminal Value']/1e9:.1f}B")
+    else:
+        st.error(f"DCF calculation failed: {dcf_result['Error']}")
+else:
+    st.info("Enter a ticker symbol to see DCF valuation.")
 
 # Scenario Analysis
 st.header("Scenario Analysis")

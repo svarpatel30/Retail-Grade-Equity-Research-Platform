@@ -11,6 +11,7 @@ The **Retail-Grade Equity Research Platform** is an interactive web application 
 
 - Analyze real company financial statements  
 - Compute key financial ratios used in professional equity research  
+- **Perform Discounted Cash Flow (DCF) valuation with customizable assumptions**
 - Evaluate company performance, financial health, and valuation metrics  
 - Understand how accounting data translates into investment insights  
 
@@ -84,9 +85,13 @@ Retail-Grade-Equity-Research-Platform/
 - P/E Ratio  
 - P/B Ratio  
 
-Metrics are calculated dynamically using the most recent annual financial data.
-
----
+### 3️⃣ Discounted Cash Flow (DCF) Valuation
+- Interactive DCF model with customizable assumptions
+- Adjustable discount rate (WACC), terminal growth rate, revenue growth, and margin improvements
+- Projects future free cash flows for up to 10 years
+- Calculates enterprise value, equity value, and intrinsic value per share
+- Compares intrinsic value to current market price
+- Shows projected cash flows and terminal value calculations
 
 ## 📊 Methodology Notes
 
