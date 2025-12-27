@@ -4,7 +4,7 @@ import pandas as pd
 def get_financials(ticker):
     """
     Pulls income statement, balance sheet, and cash flow statements.
-    Returns a dictionary of DataFrames.
+    Returns a dictionary of DataFrames and stock info.
     """
     stock = yf.Ticker(ticker)
     
@@ -18,8 +18,12 @@ def get_financials(ticker):
     balance_sheet.index = balance_sheet.index.astype(str)
     cash_flow.index = cash_flow.index.astype(str)
     
+    # Get stock info
+    info = stock.info
+    
     return {
         "Income Statement": income_stmt,
         "Balance Sheet": balance_sheet,
-        "Cash Flow": cash_flow
+        "Cash Flow": cash_flow,
+        "Info": info
     }
