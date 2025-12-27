@@ -35,3 +35,14 @@ This platform provides transparent, assumption-driven equity analysis.
 Data is sourced from public financial statements and valuation logic
 is intentionally simple and explainable.
 """)
+from data import get_financials
+import streamlit as st
+
+if ticker:
+    financials = get_financials(ticker)
+    
+    for name, df in financials.items():
+        st.subheader(name)
+        st.dataframe(df)
+
+
