@@ -1,5 +1,17 @@
 # Retail Equity Research Platform
 
+
+**Input**
+- Stock ticker (e.g. AAPL)
+- 
+**Output**
+- Company overview
+- Financial statements
+- Key metrics
+- DCF valuation (placeholder today)
+- Scenario analysis (placeholder today)
+- Methodology page
+
 A transparent, retail-focused equity research tool that allows users
 to analyze public companies using real financial data and a
 clear, assumption-driven valuation framework.
