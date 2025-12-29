@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 from data import get_financials
 from metrics import calculate_key_metrics
-from dcf import run_dcf_model
+from dcf import run_dcf_model, calculate_dcf
 
 # Page setup
 st.set_page_config(
@@ -17,9 +17,25 @@ ticker = st.text_input("Enter a stock ticker (e.g. AAPL)", value="AAPL")
 
 st.divider()
 
+if ticker:
+    # ✅ Always fetch financials first
+    financials = get_financials(ticker)
 # Company Overview
 st.header("Company Overview")
-st.info("Company description will appear here.")
+
+info = financials["Info"]
+
+st.subheader(info.get("shortName", ticker))
+st.caption(info.get("industry", "N/A"))
+
+col1, col2, col3 = st.columns(3)
+
+col1.metric("Market Cap", f"${info.get('marketCap', 0)/1e9:.1f}B")
+col2.metric("Revenue", f"${info.get('totalRevenue', 0)/1e9:.1f}B")
+col3.metric("Net Income", f"${info.get('netIncomeToCommon', 0)/1e9:.1f}B")
+
+st.write(info.get("longBusinessSummary", ""))
+
 
 # Financial Statements
 st.header("Financial Statements")
@@ -164,7 +180,51 @@ else:
 
 # Scenario Analysis
 st.header("Scenario Analysis")
-st.info("Bull / Base / Bear case valuation ranges.")
+
+scenarios = {
+    "Bear": {
+        "discount_rate": 0.10,
+        "terminal_growth": 0.02,
+        "revenue_growth": 0.03,
+        "margin_improvement": 0.002
+    },
+    "Base": {
+        "discount_rate": 0.075,
+        "terminal_growth": 0.03,
+        "revenue_growth": 0.05,
+        "margin_improvement": 0.005
+    },
+    "Bull": {
+        "discount_rate": 0.065,
+        "terminal_growth": 0.035,
+        "revenue_growth": 0.07,
+        "margin_improvement": 0.008
+    }
+}
+
+cols = st.columns(3)
+
+for col, (name, params) in zip(cols, scenarios.items()):
+    with col:
+        scenario_assumptions = {
+            "discount_rate": params["discount_rate"],
+            "terminal_growth": params["terminal_growth"],
+            "revenue_growth": params["revenue_growth"],
+            "margin_improvement": params["margin_improvement"],
+            "projection_years": projection_years
+        }
+
+        dcf = run_dcf_model(financials, scenario_assumptions)
+
+        st.subheader(name)
+
+        if "Error" not in dcf:
+            st.metric(
+                "Intrinsic Value per Share",
+                f"${dcf['Value per Share']:.2f}"
+            )
+        else:
+            st.error("DCF failed")
 
 st.divider()
 

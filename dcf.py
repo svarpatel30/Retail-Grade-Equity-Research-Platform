@@ -129,3 +129,11 @@ def project_cash_flows(last_fcf, revenue, margin, revenue_growth, margin_improve
         projected.append(fcf)
 
     return projected
+
+
+def calculate_dcf(financials, assumptions):
+    """
+    Backwards-compatible wrapper for older callers named `calculate_dcf`.
+    Delegates to `run_dcf_model` which is the current implementation.
+    """
+    return run_dcf_model(financials, assumptions)
